@@ -7,6 +7,20 @@ error NFTMarketplace__PriceMustBeAboveZero();
 error NFTMarketplace__NotApprovedForMarketplace();
 
 contract NFTMarketplace {
+    struct Listing {
+        uint256 price;
+        address seller;
+    }
+
+    event ItemListed(
+        address indexed seller,
+        address indexed nftAddress,
+        uint256 indexed tokenId,
+        uint256 price
+    );
+
+    mapping(address => mapping(uint256 => Listing)) private _listings;
+
     //////////////////////
     /// Main Functions ///
     //////////////////////
@@ -23,6 +37,8 @@ contract NFTMarketplace {
         if (nft.getApproved(tokenId) != address(this)) {
             revert NFTMarketplace__NotApprovedForMarketplace();
         }
+        _listings[nftAddress][tokenId] = Listing(price, msg.sender);
+        emit ItemListed(msg.sender, nftAddress, tokenId, price);
     }
 }
 
