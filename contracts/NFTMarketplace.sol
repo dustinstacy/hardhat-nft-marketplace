@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-error NFTMarketplace_PriceMustBeAboveZero()
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+
+error NFTMarketplace__PriceMustBeAboveZero();
+error NFTMarketplace__NotApprovedForMarketplace();
 
 contract NFTMarketplace {
     //////////////////////
@@ -14,7 +17,11 @@ contract NFTMarketplace {
         uint256 price
     ) external {
         if (price <= 0) {
-            revert NFTMarketplace_PriceMustBeAboveZero()
+            revert NFTMarketplace__PriceMustBeAboveZero();
+        }
+        IERC721 nft = IERC721(nftAddress);
+        if (nft.getApproved(tokenId) != address(this)) {
+            revert NFTMarketplace__NotApprovedForMarketplace();
         }
     }
 }
