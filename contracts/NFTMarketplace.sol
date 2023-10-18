@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 error NFTMarketplace__PriceMustBeAboveZero();
 error NFTMarketplace__NotApprovedForMarketplace();
+error NFTMarketplace__AlreadyListed(address nftAddress, uint256 tokenId);
 
 contract NFTMarketplace {
     struct Listing {
@@ -20,6 +21,22 @@ contract NFTMarketplace {
     );
 
     mapping(address => mapping(uint256 => Listing)) private _listings;
+
+    //////////////////////
+    /// Modifiers ///
+    //////////////////////
+
+    modifier notListed(
+        address nftAddress,
+        uint256 tokenId,
+        address owner
+    ) {
+        Listing memory listing = _listings[nftAddress][tokenId];
+        if (listing.price > 0) {
+            revert NFTMarketplace__AlreadyListed(nftAddress, tokenId);
+        }
+        _;
+    }
 
     //////////////////////
     /// Main Functions ///
