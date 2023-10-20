@@ -113,6 +113,11 @@ contract NFTMarketplace is ReentrancyGuard {
         emit ItemListed(msg.sender, nftAddress, tokenId, price);
     }
 
+    /*
+     * @notice Method for buying NFT
+     * @param nftAddress Address of NFT contract
+     * @param tokenId Token ID of NFT
+     */
     function buyItem(
         address nftAddress,
         uint256 tokenId
@@ -135,6 +140,11 @@ contract NFTMarketplace is ReentrancyGuard {
         emit ItemBought(msg.sender, nftAddress, tokenId, listedItem.price);
     }
 
+    /*
+     * @notice Method for canceling a NFT listing
+     * @param nftAddress Address of NFT contract
+     * @param tokenId Token ID of NFT
+     */
     function cancelListing(
         address nftAddress,
         uint256 tokenId
@@ -147,6 +157,12 @@ contract NFTMarketplace is ReentrancyGuard {
         emit ItemCanceled(msg.sender, nftAddress, tokenId);
     }
 
+    /*
+     * @notice Method for updating a NFT listing
+     * @param nftAddress Address of NFT contract
+     * @param tokenId Token ID of NFT
+     * @param newPrice new sale price for each item
+     */
     function updateListing(
         address nftAddress,
         uint256 tokenId,
@@ -160,7 +176,10 @@ contract NFTMarketplace is ReentrancyGuard {
         emit ItemListed(msg.sender, nftAddress, tokenId, newPrice);
     }
 
-    function withdrawProceeds() external {
+    /*
+     * @notice Method for withdrawing proceeds
+     */
+    function withdrawProceeds() external nonReentrant {
         uint256 proceeds = _proceeds[msg.sender];
         if (proceeds <= 0) {
             revert NFTMarketplace__NoProceeds();
@@ -171,6 +190,10 @@ contract NFTMarketplace is ReentrancyGuard {
             revert NFTMarketplace__TransferFailed();
         }
     }
+
+    ////////////////////////
+    /// Getter Functions ///
+    ////////////////////////
 
     function getListing(
         address nftAddress,
