@@ -14,6 +14,8 @@ error NFTMarketplace__PriceNotMet(
     uint256 price
 );
 error NFTMarketplace__NotOwner();
+error NFTMarketplace__NoProceeds();
+error NFTMarketplace__TransferFailed();
 
 contract NFTMarketplace is ReentrancyGuard {
     struct Listing {
@@ -157,9 +159,16 @@ contract NFTMarketplace is ReentrancyGuard {
         _listings[nftAddress][tokenId].price = newPrice;
         emit ItemListed(msg.sender, nftAddress, tokenId, newPrice);
     }
+
+    function withdrawProceeds() external {
+        uint256 proceeds = _proceeds[msg.sender];
+        if (proceeds <= 0) {
+            revert NFTMarketplace__NoProceeds();
+        }
+        _proceeds[msg.sender] = 0;
+        (bool success, ) = payable(msg.sender).call{value: proceeds}("");
+        if (!success) {
+            revert NFTMarketplace__TransferFailed();
+        }
+    }
 }
-
-// 1. Create a decentralized NFT Marketplace
-
-//     4. `updateListing`: Update a price
-//     5. `withdrawProceeds`: Withdraw payment for my bought NFTs
