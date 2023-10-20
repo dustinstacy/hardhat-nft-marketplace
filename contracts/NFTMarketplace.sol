@@ -6,6 +6,12 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 error NFTMarketplace__PriceMustBeAboveZero();
 error NFTMarketplace__NotApprovedForMarketplace();
 error NFTMarketplace__AlreadyListed(address nftAddress, uint256 tokenId);
+error NFTMarketplace__NotListed(address nftAddress, uint256 tokenId);
+error NFTMarketplace__PriceNotMet(
+    address nftAddress,
+    uint256 tokenId,
+    uint256 price
+);
 error NFTMarketplace__NotOwner();
 
 contract NFTMarketplace {
@@ -23,9 +29,9 @@ contract NFTMarketplace {
 
     mapping(address => mapping(uint256 => Listing)) private _listings;
 
-    //////////////////////
+    /////////////////
     /// Modifiers ///
-    //////////////////////
+    /////////////////
 
     modifier notListed(
         address nftAddress,
@@ -35,6 +41,14 @@ contract NFTMarketplace {
         Listing memory listing = _listings[nftAddress][tokenId];
         if (listing.price > 0) {
             revert NFTMarketplace__AlreadyListed(nftAddress, tokenId);
+        }
+        _;
+    }
+
+    modifier isListed(address nftAddress, uint256 tokenId) {
+        Listing memory listing = _listings[nftAddress][tokenId];
+        if (listing.price <= 0) {
+            revert NFTMarketplace__NotListed(nftAddress, tokenId);
         }
         _;
     }
@@ -56,6 +70,12 @@ contract NFTMarketplace {
     /// Main Functions ///
     //////////////////////
 
+    /*
+     * @notice Method for listing NFT
+     * @param nftAddress Address of NFT contract
+     * @param tokenId Token ID of NFT
+     * @param price sale price for each item
+     */
     function listItem(
         address nftAddress,
         uint256 tokenId,
@@ -74,6 +94,20 @@ contract NFTMarketplace {
         }
         _listings[nftAddress][tokenId] = Listing(price, msg.sender);
         emit ItemListed(msg.sender, nftAddress, tokenId, price);
+    }
+
+    function buyItem(
+        address nftAddress,
+        uint256 tokenId
+    ) external payable isListed(nftAddress, tokenId) {
+        Listing memory listedItem = _listings[nftAddress][tokenId];
+        if (msg.value < listedItem.price) {
+            revert NFTMarketplace__PriceNotMet(
+                nftAddress,
+                tokenId,
+                listedItem.price
+            );
+        }
     }
 }
 
