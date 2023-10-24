@@ -27,14 +27,14 @@ const config: HardhatUserConfig = {
             chainId: 11155111,
         },
     },
-    // namedAccounts: {
-    //     deployer: {
-    //         default: 0,
-    //     },
-    //     entrant: {
-    //         default: 1,
-    //     },
-    // },
+    namedAccounts: {
+        deployer: {
+            default: 0,
+        },
+        entrant: {
+            default: 1,
+        },
+    },
     etherscan: {
         apiKey: ETHERSCAN_API_KEY,
     },
