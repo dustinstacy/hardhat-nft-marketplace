@@ -75,12 +75,46 @@ describe('NFTMarketplace', () => {
     })
 
     describe('buyItem', async () => {
-        it('Emits an item bought event', async () => {})
-        it('Only buys and items if it is listed', async () => {})
-        it('Only buys the items if enough payment is sent', async () => {})
-        it('Increases the sellers proceeds by the payment amout', async () => {})
-        it('Removes the items from listings', async () => {})
-        it('Transfers the bought item to the buyer', () => {})
+        it('Emits an item bought event', async () => {
+            await nftMarketplace.listItem(basicNFTAddress, TOKEN_ID, PRICE)
+            nftMarketplace = nftMarketplaceContract.connect(user)
+            expect(
+                await nftMarketplace.buyItem(basicNFTAddress, TOKEN_ID, { value: PRICE })
+            ).to.emit(nftMarketplace, 'ItemBought')
+        })
+        it('Only buys and items if it is listed', async () => {
+            await expect(
+                nftMarketplace.buyItem(basicNFTAddress, TOKEN_ID)
+            ).to.be.revertedWithCustomError(nftMarketplace, 'NFTMarketplace__NotListed')
+        })
+        it('Only buys the items if enough payment is sent', async () => {
+            await nftMarketplace.listItem(basicNFTAddress, TOKEN_ID, PRICE)
+            nftMarketplace = nftMarketplace.connect(user)
+            await expect(
+                nftMarketplace.buyItem(basicNFTAddress, TOKEN_ID)
+            ).to.be.revertedWithCustomError(nftMarketplace, 'NFTMarketplace__PriceNotMet')
+        })
+        it('Increases the sellers proceeds by the payment amout', async () => {
+            const previousSellerProceeds = await nftMarketplace.getProceeds(deployer)
+            await nftMarketplace.listItem(basicNFTAddress, TOKEN_ID, PRICE)
+            nftMarketplace = nftMarketplaceContract.connect(user)
+            await nftMarketplace.buyItem(basicNFTAddress, TOKEN_ID, { value: PRICE })
+            expect(await nftMarketplace.getProceeds(deployer)).to.equal(
+                previousSellerProceeds + PRICE
+            )
+        })
+        it('Removes the items from listings', async () => {
+            await nftMarketplace.listItem(basicNFTAddress, TOKEN_ID, PRICE)
+            nftMarketplace = nftMarketplaceContract.connect(user)
+            await nftMarketplace.buyItem(basicNFTAddress, TOKEN_ID, { value: PRICE })
+            expect((await nftMarketplace.getListing(basicNFTAddress, TOKEN_ID)).price).to.equal('0')
+        })
+        it('Transfers the bought item to the buyer', async () => {
+            await nftMarketplace.listItem(basicNFTAddress, TOKEN_ID, PRICE)
+            nftMarketplace = nftMarketplaceContract.connect(user)
+            await nftMarketplace.buyItem(basicNFTAddress, TOKEN_ID, { value: PRICE })
+            expect(await basicNFT.ownerOf(TOKEN_ID)).to.equal(user.address)
+        })
     })
 
     describe('cancelListing', async () => {
