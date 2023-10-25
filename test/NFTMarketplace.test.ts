@@ -145,10 +145,34 @@ describe('NFTMarketplace', () => {
     })
 
     describe('updateListing', async () => {
-        it('Emits and item updated event', async () => {})
-        it('Only allows the owner to update a listing', () => {})
-        it('Only updates a listing that is already listed', () => {})
-        it('Updates the listed item with the new price', async () => {})
+        const newPrice = ethers.parseEther('2')
+
+        it('Emits and item updated event', async () => {
+            await nftMarketplace.listItem(basicNFTAddress, TOKEN_ID, PRICE)
+            await expect(nftMarketplace.updateListing(basicNFTAddress, TOKEN_ID, newPrice)).to.emit(
+                nftMarketplace,
+                'ItemListed'
+            )
+        })
+        it('Only allows the owner to update a listing', async () => {
+            await nftMarketplace.listItem(basicNFTAddress, TOKEN_ID, PRICE)
+            nftMarketplace = nftMarketplace.connect(user)
+            await expect(
+                nftMarketplace.updateListing(basicNFTAddress, TOKEN_ID, newPrice)
+            ).to.be.revertedWithCustomError(nftMarketplace, 'NFTMarketplace__NotOwner')
+        })
+        it('Only updates a listing that is already listed', async () => {
+            await expect(
+                nftMarketplace.updateListing(basicNFTAddress, TOKEN_ID, PRICE)
+            ).to.be.revertedWithCustomError(nftMarketplace, 'NFTMarketplace__NotListed')
+        })
+        it('Updates the listed item with the new price', async () => {
+            await nftMarketplace.listItem(basicNFTAddress, TOKEN_ID, PRICE)
+            await nftMarketplace.updateListing(basicNFTAddress, TOKEN_ID, newPrice)
+            expect((await nftMarketplace.getListing(basicNFTAddress, TOKEN_ID)).price).to.equal(
+                newPrice
+            )
+        })
     })
 
     describe('withdrawProceeds', async () => {
