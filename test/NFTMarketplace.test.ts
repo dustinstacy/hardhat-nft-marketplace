@@ -73,8 +73,34 @@ describe('NFTMarketplace', () => {
             expect(listing.price).to.equal(PRICE)
         })
     })
-    describe('buyItem', async () => {})
-    describe('cancelListing', async () => {})
-    describe('updateListing', async () => {})
-    describe('withdrawProceeds', async () => {})
+
+    describe('buyItem', async () => {
+        it('Emits an item bought event', async () => {})
+        it('Only buys and items if it is listed', async () => {})
+        it('Only buys the items if enough payment is sent', async () => {})
+        it('Increases the sellers proceeds by the payment amout', async () => {})
+        it('Removes the items from listings', async () => {})
+        it('Transfers the bought item to the buyer', () => {})
+    })
+
+    describe('cancelListing', async () => {
+        it('Emits an item Canceled event', async () => {})
+        it('Only allows the owner to cancel a listing', () => {})
+        it('Only cancels a listing that is already listed', () => {})
+        it('Removes the items from listings', async () => {})
+    })
+
+    describe('updateListing', async () => {
+        it('Emits and item updated event', async () => {})
+        it('Only allows the owner to update a listing', () => {})
+        it('Only updates a listing that is already listed', () => {})
+        it('Updates the listed item with the new price', async () => {})
+    })
+
+    describe('withdrawProceeds', async () => {
+        it('Only withdraws proceeds if the balance is greater than 0', async () => {})
+        it('Reduces the withdrawers proceeds to 0', async () => {})
+        it('Updates the withdrawers address balance', async () => {})
+        it('Reverts the transaction if the transfer fails', async () => {})
+    })
 })
