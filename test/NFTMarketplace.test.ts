@@ -1,8 +1,8 @@
 import { Address } from 'hardhat-deploy/dist/types'
 import { BasicNFT, NFTMarketplace } from '../typechain-types'
-import { SignerWithAddress } from '@nomicfoundation/hardhat-ethers/signers'
 import { deployments, ethers } from 'hardhat'
-import { expect } from 'chai'
+import { assert, expect } from 'chai'
+import { ContractTransactionReceipt, Signer } from 'ethers'
 
 describe('NFTMarketplace', () => {
     let nftMarketplaceContract: NFTMarketplace
@@ -10,8 +10,8 @@ describe('NFTMarketplace', () => {
     let nftMarketplace: NFTMarketplace
     let basicNFT: BasicNFT
     let basicNFTAddress: Address
-    let deployer: SignerWithAddress
-    let user: SignerWithAddress
+    let deployer: Signer
+    let user: Signer
 
     const PRICE = ethers.parseEther('0.1')
     const TOKEN_ID = 0
@@ -113,7 +113,7 @@ describe('NFTMarketplace', () => {
             await nftMarketplace.listItem(basicNFTAddress, TOKEN_ID, PRICE)
             nftMarketplace = nftMarketplaceContract.connect(user)
             await nftMarketplace.buyItem(basicNFTAddress, TOKEN_ID, { value: PRICE })
-            expect(await basicNFT.ownerOf(TOKEN_ID)).to.equal(user.address)
+            expect(await basicNFT.ownerOf(TOKEN_ID)).to.equal(await user.getAddress())
         })
     })
 
@@ -176,9 +176,31 @@ describe('NFTMarketplace', () => {
     })
 
     describe('withdrawProceeds', async () => {
-        it('Only withdraws proceeds if the balance is greater than 0', async () => {})
-        it('Reduces the withdrawers proceeds to 0', async () => {})
-        it('Updates the withdrawers address balance', async () => {})
-        it('Reverts the transaction if the transfer fails', async () => {})
+        it('Only withdraws proceeds if the balance is greater than 0', async () => {
+            await expect(nftMarketplace.withdrawProceeds()).to.be.revertedWithCustomError(
+                nftMarketplace,
+                'NFTMarketplace__NoProceeds'
+            )
+        })
+        it('Reduces the withdrawers proceeds to 0 and updates the address balance', async () => {
+            await nftMarketplace.listItem(basicNFTAddress, TOKEN_ID, PRICE)
+            nftMarketplace = nftMarketplaceContract.connect(user)
+            await nftMarketplace.buyItem(basicNFTAddress, TOKEN_ID, { value: PRICE })
+            nftMarketplace = nftMarketplaceContract.connect(deployer)
+            const previousSellerProceeds = await nftMarketplace.getProceeds(
+                await deployer.getAddress()
+            )
+            const previousSellerBalance = await ethers.provider.getBalance(deployer)
+            const tx = await nftMarketplace.withdrawProceeds()
+            const txReceipt = await tx.wait(1)
+            const { gasUsed, gasPrice } = txReceipt as ContractTransactionReceipt
+            const gasCost = gasUsed * gasPrice
+            const newSellerBalance = await ethers.provider.getBalance(deployer)
+            expect(previousSellerProceeds).to.not.equal('0')
+            expect(await nftMarketplace.getProceeds(deployer)).to.equal('0')
+            expect(newSellerBalance + gasCost).to.equal(
+                previousSellerBalance + previousSellerProceeds
+            )
+        })
     })
 })
