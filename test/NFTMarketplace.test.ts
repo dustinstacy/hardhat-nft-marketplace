@@ -118,10 +118,30 @@ describe('NFTMarketplace', () => {
     })
 
     describe('cancelListing', async () => {
-        it('Emits an item Canceled event', async () => {})
-        it('Only allows the owner to cancel a listing', () => {})
-        it('Only cancels a listing that is already listed', () => {})
-        it('Removes the items from listings', async () => {})
+        it('Emits an item Canceled event', async () => {
+            await nftMarketplace.listItem(basicNFTAddress, TOKEN_ID, PRICE)
+            await expect(nftMarketplace.cancelListing(basicNFTAddress, TOKEN_ID)).to.emit(
+                nftMarketplace,
+                'ItemCanceled'
+            )
+        })
+        it('Only allows the owner to cancel a listing', async () => {
+            await nftMarketplace.listItem(basicNFTAddress, TOKEN_ID, PRICE)
+            nftMarketplace = nftMarketplace.connect(user)
+            await expect(
+                nftMarketplace.cancelListing(basicNFTAddress, TOKEN_ID)
+            ).to.be.revertedWithCustomError(nftMarketplace, 'NFTMarketplace__NotOwner')
+        })
+        it('Only cancels a listing that is already listed', async () => {
+            await expect(
+                nftMarketplace.cancelListing(basicNFTAddress, TOKEN_ID)
+            ).to.be.revertedWithCustomError(nftMarketplace, 'NFTMarketplace__NotListed')
+        })
+        it('Removes the items from listings', async () => {
+            await nftMarketplace.listItem(basicNFTAddress, TOKEN_ID, PRICE)
+            await nftMarketplace.cancelListing(basicNFTAddress, TOKEN_ID)
+            expect((await nftMarketplace.getListing(basicNFTAddress, TOKEN_ID)).price).to.equal('0')
+        })
     })
 
     describe('updateListing', async () => {
