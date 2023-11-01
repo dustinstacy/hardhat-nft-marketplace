@@ -5,7 +5,6 @@ import { BasicNFT, NFTMarketplace } from '../typechain-types'
 const PRICE = ethers.parseEther('1')
 
 const mintAndList = async () => {
-    await deployments.fixture(['all'])
     const nftMarketplaceAddress: Address = (await deployments.get('NFTMarketplace')).address
     const nftMarketplace: NFTMarketplace = await ethers.getContractAt(
         'NFTMarketplace',

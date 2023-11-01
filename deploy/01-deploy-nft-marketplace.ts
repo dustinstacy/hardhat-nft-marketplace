@@ -14,7 +14,7 @@ const deployNFTMarketplace: DeployFunction = async ({ getNamedAccounts, deployme
         from: deployer,
         args: args,
         log: true,
-        waitConfirmations: networkConfig[network.name].blockConfirmations,
+        waitConfirmations: 6,
     })
 
     if (!devChains.includes(network.name) && process.env.ETHERSCAN_API_KEY) {
